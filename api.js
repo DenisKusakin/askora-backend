@@ -55,6 +55,8 @@ app.post('/subscribe', (req, res) => {
     let walletAddr = body.walletAddr
 
     let initDataStr = body.initData
+
+    console.log("Subscribe", walletAddr)
     if(!isTgDataValid(initDataStr)){
         res.sendStatus(401)
     } else {
