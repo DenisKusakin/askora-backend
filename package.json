@@ -1,0 +1,26 @@
+{
+  "name": "askora-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "start-api": "node api.js",
+    "start-ton-listener": "node ton/track-notifications.js",
+    "start-notificator": "node telegram/notificator.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ton-api/client": "^0.2.0",
+    "@ton-api/streaming": "^0.0.1-beta.0",
+    "@ton/core": "^0.59.0",
+    "bullmq": "^5.25.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "node-telegram-bot-api": "^0.66.0",
+    "redis": "^4.7.0"
+  }
+}
