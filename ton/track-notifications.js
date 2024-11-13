@@ -2,6 +2,7 @@ import {beginCell} from "@ton/core";
 import {notificationsQueue} from "../notification-queue.js";
 import {fetchNotifications} from "../services/ton-service.js";
 import {redisClient} from "../redis-client.js";
+import {ROOT_ACCOUNT_ADDR} from "../conf.js";
 
 function getJobId(notification) {
     //Hash of cell is just a way to build unique notification id
@@ -18,8 +19,12 @@ function getJobId(notification) {
 await redisClient.connect()
 const LAST_PROCESSED_KEY = "last-processed-lt";
 
-async function runTrackNotifications() {
-    let lastProcessedLtStr = await redisClient.get(LAST_PROCESSED_KEY)
+function lastProcessedLtKey(){
+    return `${LAST_PROCESSED_KEY}-${ROOT_ACCOUNT_ADDR.toRawString()}`
+}
+
+async function fetchLastProcessedLt(lastProcessedKey){
+    let lastProcessedLtStr = await redisClient.get(lastProcessedKey)
     if (lastProcessedLtStr == null) {
         lastProcessedLtStr = "0";
     }
@@ -29,6 +34,11 @@ async function runTrackNotifications() {
     } else {
         console.log('No last processed lt found, starting with the very beginning')
     }
+
+    return lastProcessedLt;
+}
+
+async function runTrackNotifications() {
     let isDone = false
     process.on('SIGINT', () => {
         isDone = true
@@ -38,8 +48,10 @@ async function runTrackNotifications() {
     })
 
     while (!isDone) {
-        const notifications = await fetchNotifications(lastProcessedLt)
+        const lastProcessedKey = lastProcessedLtKey()
+        const lastProcessedLt = await fetchLastProcessedLt()
 
+        const notifications = await fetchNotifications(lastProcessedLt)
         for (let i = 0; i < notifications.length; i++) {
             let notification = notifications[i]
             let jobId = getJobId(notification)
@@ -52,8 +64,12 @@ async function runTrackNotifications() {
             }, {
                 jobId
             })
-            lastProcessedLt = notification.lt
-            await redisClient.set(LAST_PROCESSED_KEY, lastProcessedLt.toString())
+            await redisClient.set(lastProcessedKey, notification.lt.toString())
+            console.log("Notification received", {
+                owner: notification.owner.toString(),
+                submitter: notification.submitter.toString(),
+                op: notification.op
+            })
         }
         await new Promise(resolve => setTimeout(resolve, 10_000))
     }

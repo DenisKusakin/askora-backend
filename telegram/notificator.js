@@ -7,7 +7,7 @@ import {op_question_created, op_question_rejected, op_question_replied} from "..
 
 const bot = new TelegramBot(TG_API_TOKEN);
 
-function botUrl(internalUrl){
+function botUrl(internalUrl) {
     return `https://t.me/AskoraBot/app?startapp=${internalUrl}`
 }
 
@@ -21,8 +21,13 @@ async function runNotificator() {
         let ownerTgId = await fetchTgIdByWalletAddr(owner.toRawString())
         let submitterTgId = await fetchTgIdByWalletAddr(submitter.toRawString())
 
-        console.log("Data", owner.toString(), submitter.toString())
-        console.log("Tg Data", ownerTgId, submitterTgId)
+        console.log("Sending notification", {
+            owner: owner.toString(),
+            submitter: submitter.toString(),
+            op,
+            ownerTgId,
+            submitterTgId
+        })
 
         if (op === op_question_created) {
             if (ownerTgId !== null) {
@@ -40,8 +45,6 @@ async function runNotificator() {
                 await bot.sendMessage(submitterTgId, `🔔Your question has been rejected😔\n${botUrl(url)}`)
             }
         }
-
-        console.log("Notification received", job.data);
     }, {
         connection: {
             host: REDIS_CONFIG.host,
@@ -49,6 +52,14 @@ async function runNotificator() {
             password: REDIS_CONFIG.password
         }
     });
+
+    const gracefulShutdown = async (signal) => {
+        console.log(`Received ${signal}, closing server...`);
+        await worker.close();
+    }
+
+    process.on('SIGINT', gracefulShutdown);
+    process.on('SIGTERM', gracefulShutdown);
 
     worker.on('error', err => console.log("Error", err))
 }
