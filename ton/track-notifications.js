@@ -49,7 +49,7 @@ async function runTrackNotifications() {
 
     while (!isDone) {
         const lastProcessedKey = lastProcessedLtKey()
-        const lastProcessedLt = await fetchLastProcessedLt()
+        const lastProcessedLt = await fetchLastProcessedLt(lastProcessedKey)
 
         const notifications = await fetchNotifications(lastProcessedLt)
         for (let i = 0; i < notifications.length; i++) {
