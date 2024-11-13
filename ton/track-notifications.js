@@ -4,10 +4,11 @@ import {fetchNotifications} from "../services/ton-service.js";
 import {redisClient} from "../redis-client.js";
 import {ROOT_ACCOUNT_ADDR} from "../conf.js";
 
-function getJobId(notification) {
+function getJobId(notification, rootAddr) {
     //Hash of cell is just a way to build unique notification id
     //(owner, id, operation) identifies notification
     return beginCell()
+        .storeAddress(rootAddr)
         .storeAddress(notification.owner)
         .storeUint(notification.id, 32)
         .storeUint(notification.op, 32)
@@ -54,7 +55,7 @@ async function runTrackNotifications() {
         const notifications = await fetchNotifications(lastProcessedLt)
         for (let i = 0; i < notifications.length; i++) {
             let notification = notifications[i]
-            let jobId = getJobId(notification)
+            let jobId = getJobId(notification, ROOT_ACCOUNT_ADDR)
 
             await notificationsQueue.add('ton-notification', {
                 owner: notification.owner.toRawString(),
