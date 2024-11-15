@@ -105,7 +105,6 @@ app.post('/unsubscribe', (req, res) => {
 
 app.post('/generate-payload', (req, res) => {
     generatePayload().then(payload => {
-        console.log("Generated payload", payload)
         res.json({payload})
     })
 })

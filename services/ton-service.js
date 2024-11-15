@@ -185,7 +185,7 @@ export async function replySponsored(ownerAddr, qId, replyContent){
         .storeRef(beginCell().storeStringTail(replyContent).endCell())
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.01))
+    return sendSponsoredTransaction(msgBody, toNano(0.03))
 }
 
 export async function rejectSponsored(ownerAddr, qId){
@@ -196,7 +196,7 @@ export async function rejectSponsored(ownerAddr, qId){
         .storeUint(qId, 32)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.01))
+    return sendSponsoredTransaction(msgBody, toNano(0.03))
 }
 
 export async function changePriceSponsored(ownerAddr, newPrice){
@@ -207,7 +207,7 @@ export async function changePriceSponsored(ownerAddr, newPrice){
         .storeCoins(newPrice)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.01))
+    return sendSponsoredTransaction(msgBody, toNano(0.03))
 }
 
 export async function changeDescriptionSponsored(ownerAddr, newDescription){
@@ -218,5 +218,5 @@ export async function changeDescriptionSponsored(ownerAddr, newDescription){
         .storeStringRefTail(newDescription)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.01))
+    return sendSponsoredTransaction(msgBody, toNano(0.03))
 }
