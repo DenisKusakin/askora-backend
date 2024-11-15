@@ -16,11 +16,16 @@
   "dependencies": {
     "@ton-api/client": "^0.2.0",
     "@ton-api/streaming": "^0.0.1-beta.0",
+    "@ton-api/ton-adapter": "^0.2.0",
     "@ton/core": "^0.59.0",
+    "@ton/crypto": "^3.3.0",
+    "@ton/ton": "^15.1.0",
     "bullmq": "^5.25.2",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "jose": "^5.9.6",
     "node-telegram-bot-api": "^0.66.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "tweetnacl": "^1.0.3"
   }
 }

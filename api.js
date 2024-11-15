@@ -4,6 +4,15 @@ import {createHmac} from "node:crypto";
 import {API_PORT, TG_API_TOKEN} from "./conf.js";
 import {fetchTgIdByWalletAddr, removeTgIdForWallet, setTgIdToWallet} from "./services/user-service.js";
 import {Address} from "@ton/core";
+import {
+    changeDescriptionSponsored,
+    changePriceSponsored,
+    createAccountSponsored,
+    rejectSponsored,
+    replySponsored,
+    verifyTonProof
+} from "./services/ton-service.js";
+import {generatePayload, generateToken, verifyToken} from "./services/jwt-service.js";
 
 const app = express()
 
@@ -57,7 +66,7 @@ app.post('/subscribe', (req, res) => {
     let initDataStr = body.initData
 
     console.log("Subscribe", walletAddr)
-    if(!isTgDataValid(initDataStr)){
+    if (!isTgDataValid(initDataStr)) {
         res.sendStatus(401)
     } else {
         let initData = new URLSearchParams(initDataStr)
@@ -78,7 +87,7 @@ app.post('/unsubscribe', (req, res) => {
     let walletAddr = body.walletAddr
 
     let initDataStr = body.initData
-    if(!isTgDataValid(initDataStr)){
+    if (!isTgDataValid(initDataStr)) {
         res.sendStatus(401)
     } else {
         let initData = new URLSearchParams(initDataStr)
@@ -91,6 +100,106 @@ app.post('/unsubscribe', (req, res) => {
             .then(() => {
                 res.sendStatus(200)
             })
+    }
+})
+
+app.post('/generate-payload', (req, res) => {
+    generatePayload().then(payload => {
+        console.log("Generated payload", payload)
+        res.json({payload})
+    })
+})
+
+app.post('/check_proof', async (req, res) => {
+    let payload = req.body
+    const address = Address.parse(payload.address)
+
+    try {
+        const isTonProofValid = verifyTonProof(payload)
+        if (!isTonProofValid) {
+            res.sendStatus(401)
+        }
+        // At his point we know that address belongs to the user
+        if (await verifyToken(payload.proof.payload) != null) {
+            const authToken = await generateToken(address)
+            res.json({token: authToken})
+        } else {
+            res.sendStatus(401)
+        }
+    } catch (e) {
+        console.log("Error", e)
+        res.sendStatus(401)
+    }
+
+})
+
+app.post('/create-account', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const addr = Address.parse(verified.addr);
+        await createAccountSponsored(addr, BigInt(reqBody.price), reqBody.description)
+        res.json({ok: 'ok'})
+    }
+})
+
+app.post('/reply-question', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const addr = Address.parse(verified.addr);
+        const qId = reqBody.qId;
+        const replyContent = reqBody.replyContent;
+        await replySponsored(addr, qId, replyContent)
+        res.json({ok: 'ok'})
+    }
+})
+
+app.post('/reject-question', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const addr = Address.parse(verified.addr);
+        const qId = reqBody.qId;
+        await rejectSponsored(addr, qId)
+        res.json({ok: 'ok'})
+    }
+})
+
+app.post('/change-price', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const addr = Address.parse(verified.addr);
+        const newPrice = BigInt(reqBody.price);
+        await changePriceSponsored(addr, newPrice)
+        res.json({ok: 'ok'})
+    }
+})
+
+app.post('/change-description', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const addr = Address.parse(verified.addr);
+        const newDescription = reqBody.description;
+        await changeDescriptionSponsored(addr, newDescription)
+        res.json({ok: 'ok'})
     }
 })
 
