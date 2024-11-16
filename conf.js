@@ -16,5 +16,8 @@ export const ALLOWED_DOMAINS = [
     'localhost',
     'askora-twa.vercel.app'
 ];
+//MAINNET = "-239"
+//TESTNET = "-3"
+export const SPONSORED_TRANSACTION_CHAIN = process.env.SPONSORED_TRANSACTION_CHAIN
 export const TON_PROOF_VALID_AUTH_TIME = 15 * 60; // 15 minute
 export const API_PORT = 3002;

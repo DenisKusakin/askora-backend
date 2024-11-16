@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import {createHmac} from "node:crypto";
-import {API_PORT, TG_API_TOKEN} from "./conf.js";
+import {API_PORT, SPONSORED_TRANSACTION_CHAIN, TG_API_TOKEN} from "./conf.js";
 import {fetchTgIdByWalletAddr, removeTgIdForWallet, setTgIdToWallet} from "./services/user-service.js";
 import {Address} from "@ton/core";
 import {
@@ -117,6 +117,9 @@ app.post('/check_proof', async (req, res) => {
         const isTonProofValid = verifyTonProof(payload)
         if (!isTonProofValid) {
             res.sendStatus(401)
+        }
+        if (payload.network !== SPONSORED_TRANSACTION_CHAIN){
+            res.status(400).send("wrong chain")
         }
         // At his point we know that address belongs to the user
         if (await verifyToken(payload.proof.payload) != null) {
