@@ -11,6 +11,25 @@ function botUrl(internalUrl) {
     return `https://t.me/AskoraBot/app?startapp=${internalUrl}`
 }
 
+function msgOptions(url, effectId) {
+    const res = {
+        disable_notification: true,
+        reply_markup: {
+            inline_keyboard: [
+                [{
+                    text: 'Open',
+                    url: botUrl(url)
+                }]
+            ]
+        }
+    }
+
+    if(effectId != null) {
+        res.message_effect_id = effectId
+    }
+    return res
+}
+
 async function runNotificator() {
     const worker = new Worker('ton-notifications', async job => {
         let owner = Address.parse(job.data.owner)
@@ -28,14 +47,10 @@ async function runNotificator() {
             ownerTgId,
             submitterTgId
         })
-        const msgOptions = url => ({
-            disable_notification: true,
-            reply_markup: {inline_keyboard: [{text: 'Open', web_app: {url: botUrl(url)}}]}
-        })
         if (op === op_question_created) {
             if (ownerTgId !== null) {
                 let url = `1_${id}`
-                await bot.sendMessage(ownerTgId, `🔔You've Got a New Question!`, msgOptions(url))
+                await bot.sendMessage(ownerTgId, `🔔You've Got a New Question!`, msgOptions(url, "5046509860389126442"))
             }
         } else if (op === op_question_replied) {
             if (submitterTgId !== null) {
