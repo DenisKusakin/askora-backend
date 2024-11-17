@@ -7,7 +7,7 @@ import {Address} from "@ton/core";
 import {
     changeDescriptionSponsored,
     changePriceSponsored,
-    createAccountSponsored,
+    createAccountSponsored, refundSponsored,
     rejectSponsored,
     replySponsored,
     verifyTonProof
@@ -201,6 +201,19 @@ app.post('/change-description', async (req, res) => {
         const addr = Address.parse(verified.addr);
         const newDescription = reqBody.description;
         await changeDescriptionSponsored(addr, newDescription)
+        res.json({ok: 'ok'})
+    }
+})
+
+app.post('/refund-question', async (req, res) => {
+    const reqBody = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const verified = await verifyToken(token)
+    if (!token || !verified) {
+        res.sendStatus(401)
+    } else {
+        const questionAddr = Address.parse(reqBody.questionAddr);
+        await refundSponsored(questionAddr)
         res.json({ok: 'ok'})
     }
 })

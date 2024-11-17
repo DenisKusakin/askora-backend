@@ -219,7 +219,7 @@ async function releaseLock() {
     await redisClient.del('sponsor-wallet-lock')
 }
 
-async function sendSponsoredTransaction(msgBody, amount) {
+async function sendSponsoredTransaction(msgBody, amount, targetAddr) {
     await acquireLock()
     try {
         const contract = adapter.open(wallet);
@@ -232,7 +232,7 @@ async function sendSponsoredTransaction(msgBody, amount) {
             messages: [
                 internal({
                     value: amount,
-                    to: ROOT_ACCOUNT_ADDR.toRawString(),
+                    to: targetAddr.toRawString(),
                     body: msgBody
                 })
             ]
@@ -268,7 +268,7 @@ export async function createAccountSponsored(ownerAddr, price, description) {
         .storeRef(beginCell().storeStringTail(description).endCell())
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.07))
+    return sendSponsoredTransaction(msgBody, toNano(0.07), ROOT_ACCOUNT_ADDR)
 }
 
 export async function replySponsored(ownerAddr, qId, replyContent) {
@@ -280,7 +280,7 @@ export async function replySponsored(ownerAddr, qId, replyContent) {
         .storeRef(beginCell().storeStringTail(replyContent).endCell())
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.03))
+    return sendSponsoredTransaction(msgBody, toNano(0.03), ROOT_ACCOUNT_ADDR)
 }
 
 export async function rejectSponsored(ownerAddr, qId) {
@@ -291,7 +291,7 @@ export async function rejectSponsored(ownerAddr, qId) {
         .storeUint(qId, 32)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.03))
+    return sendSponsoredTransaction(msgBody, toNano(0.03), ROOT_ACCOUNT_ADDR)
 }
 
 export async function changePriceSponsored(ownerAddr, newPrice) {
@@ -302,7 +302,7 @@ export async function changePriceSponsored(ownerAddr, newPrice) {
         .storeCoins(newPrice)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.03))
+    return sendSponsoredTransaction(msgBody, toNano(0.03), ROOT_ACCOUNT_ADDR)
 }
 
 export async function changeDescriptionSponsored(ownerAddr, newDescription) {
@@ -313,5 +313,14 @@ export async function changeDescriptionSponsored(ownerAddr, newDescription) {
         .storeStringRefTail(newDescription)
         .endCell()
 
-    return sendSponsoredTransaction(msgBody, toNano(0.03))
+    return sendSponsoredTransaction(msgBody, toNano(0.03), ROOT_ACCOUNT_ADDR)
+}
+
+export async function refundSponsored(questionAddr) {
+    console.log("refund sponsored", questionAddr.toString())
+    const msgBody = beginCell()
+        .storeUint(BigInt('0x5616c572'), 32)
+        .endCell()
+
+    return sendSponsoredTransaction(msgBody, toNano(0.03), questionAddr)
 }
