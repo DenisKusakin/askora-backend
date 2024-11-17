@@ -27,6 +27,47 @@ export const op_question_created = BigInt("0x5d2c2cd5")
 export const op_question_replied = BigInt("0xb67beedd")
 export const op_question_rejected = BigInt("0xd7f75248")
 
+//These functions rely on the internal structure of the contracts
+//TODO: move this to wrappers and use them on the backend
+console.log("Fetch data from the root account...")
+const rootContractData = await tonApiClient.blockchain.getBlockchainRawAccount(ROOT_ACCOUNT_ADDR)
+    .then(rootAcc => rootAcc.data)
+    .then(data => {
+        let ds = data.beginParse()
+        let accountCode = ds.loadRef()
+        let questionCode = ds.loadRef()
+        let questionRefCode = ds.loadRef()
+        let owner = ds.loadAddress()
+
+        console.log("Data from the root account received")
+        return {
+            accountCode,
+            questionCode,
+            questionRefCode
+        }
+    })
+
+function calculateAccountAddress(owner) {
+    const data = beginCell()
+        .storeAddress(owner)
+        .storeAddress(ROOT_ACCOUNT_ADDR)
+        .storeRef(rootContractData.questionCode)
+        .storeRef(rootContractData.questionRefCode)
+        .endCell()
+
+    return contractAddress(0, {code: rootContractData.accountCode, data})
+}
+
+function calculateQuestionAddress(owner, qId) {
+    const accountAddress = calculateAccountAddress(owner)
+    const data = beginCell()
+        .storeAddress(accountAddress)
+        .storeUint(qId, 32)
+        .endCell()
+
+    return contractAddress(0, {code: rootContractData.questionCode, data})
+}
+
 export async function fetchNotifications(after_lt) {
     let transactions = (await tonApiClient.blockchain.getBlockchainAccountTransactions(ROOT_ACCOUNT_ADDR, {
         after_lt,
@@ -34,7 +75,7 @@ export async function fetchNotifications(after_lt) {
     })).transactions
     return transactions.filter(x => x.success)
         .map(x => {
-            if (x.inMsg == null || x.inMsg.rawBody == null) {
+            if (x.inMsg == null || x.inMsg.rawBody == null || x.inMsg.source == null) {
                 return null;
             }
             let op = x.inMsg.opCode
@@ -43,6 +84,14 @@ export async function fetchNotifications(after_lt) {
                 let owner = slice.loadAddress()
                 let id = slice.loadInt(32)
                 let submitter = slice.loadAddress()
+
+                //Anyone could send such messages, need to make sure that the sender is actually a valid question contract
+                const expectedSenderAddress = calculateQuestionAddress(owner, id)
+                const actualSenderAddr = x.inMsg.source.address
+                if (!expectedSenderAddress.equals(actualSenderAddr)) {
+                    console.error("Notification came from unexpected sender, will be ignored", actualSenderAddr.toString())
+                    return null
+                }
 
                 return {owner, id, submitter, lt: x.lt, createdAt: x.utime, op: op.toString()}
             } else {

@@ -28,21 +28,24 @@ async function runNotificator() {
             ownerTgId,
             submitterTgId
         })
-
+        const msgOptions = url => ({
+            disable_notification: true,
+            reply_markup: {inline_keyboard: [{text: 'Open', web_app: {url: botUrl(url)}}]}
+        })
         if (op === op_question_created) {
             if (ownerTgId !== null) {
                 let url = `1_${id}`
-                await bot.sendMessage(ownerTgId, `🔔You've Got a New Question!!\n${botUrl(url)}`)
+                await bot.sendMessage(ownerTgId, `🔔You've Got a New Question!`, msgOptions(url))
             }
         } else if (op === op_question_replied) {
             if (submitterTgId !== null) {
                 let url = `2_${id}_${owner.toString()}`
-                await bot.sendMessage(submitterTgId, `🔔You've got a response to your question!\n${botUrl(url)}`)
+                await bot.sendMessage(submitterTgId, `🔔You've got a response to your question`, msgOptions(url))
             }
         } else if (op === op_question_rejected) {
             if (submitterTgId !== null) {
                 let url = `2_${id}_${owner.toString()}`
-                await bot.sendMessage(submitterTgId, `🔔Your question has been rejected😔\n${botUrl(url)}`)
+                await bot.sendMessage(submitterTgId, `🔔Your question has been rejected😔`, msgOptions(url))
             }
         }
     }, {
