@@ -14,7 +14,7 @@ export const JWT_EXPIRATION_TIME = process.env.JWT_EXPIRATION_TIME || '1Y'
 export const SPONSOR_WALLET_MNEMONIC = process.env.SPONSOR_WALLET_MNEMONIC.split(' ')
 export const ALLOWED_DOMAINS = [
     'localhost',
-    'askora-twa.vercel.app'
+    'askora.vercel.app'
 ];
 //MAINNET = "-239"
 //TESTNET = "-3"
