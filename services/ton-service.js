@@ -272,7 +272,7 @@ export async function createAccountSponsored(ownerAddr, price, description) {
 }
 
 export async function replySponsored(ownerAddr, qId, replyContent) {
-    console.log("create question sponsored", ownerAddr.toString(), qId)
+    console.log("reply question sponsored", ownerAddr.toString(), qId)
     const msgBody = beginCell()
         .storeUint(BigInt('0xd9c2a251'), 32)
         .storeAddress(ownerAddr)
