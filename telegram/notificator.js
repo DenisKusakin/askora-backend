@@ -5,12 +5,12 @@ import {fetchTgIdByWalletAddr} from "../services/user-service.js";
 import {REDIS_CONFIG, TG_API_TOKEN} from "../conf.js";
 import {op_question_created, op_question_rejected, op_question_replied} from "../services/ton-service.js";
 
-const bot = new TelegramBot(TG_API_TOKEN);
+const bot = new TelegramBot(TG_API_TOKEN, {polling: true});
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     console.log("Received /start message");
-    bot.sendMessage(chatId, "Welcome to Askora – your open Q&A platform! Tap 'Launch' to dive in and start exploring");
+    bot.sendMessage(chatId, "Welcome to Askora – your open Q&A platform! Tap 'Open' to dive in and start exploring");
 })
 
 function botUrl(internalUrl) {
