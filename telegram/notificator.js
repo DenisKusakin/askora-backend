@@ -7,6 +7,11 @@ import {op_question_created, op_question_rejected, op_question_replied} from "..
 
 const bot = new TelegramBot(TG_API_TOKEN);
 
+bot.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, "Welcome to Askora – your open Q&A platform! Tap 'Launch' to dive in and start exploring");
+})
+
 function botUrl(internalUrl) {
     return `https://t.me/AskoraBot/app?startapp=${internalUrl}`
 }
