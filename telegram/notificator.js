@@ -9,6 +9,7 @@ const bot = new TelegramBot(TG_API_TOKEN);
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
+    console.log("Received /start message");
     bot.sendMessage(chatId, "Welcome to Askora – your open Q&A platform! Tap 'Launch' to dive in and start exploring");
 })
 
